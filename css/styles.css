@@ -1,0 +1,108 @@
+:root {
+    --cor-fundo: #E8F5E9; /* Verde bem clarinho, estilo floresta protetora */
+    --cor-texto: #2E7D32;
+    --cor-painel: #FFFFFF;
+    --cor-bloco: #A5D6A7; /* Fundo dos blocos onde ficam as figuras */
+}
+
+body {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    background-color: var(--cor-fundo);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.game-container {
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.painel-status {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    color: var(--cor-texto);
+    font-size: 1.3rem;
+    background: var(--cor-painel);
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* Tabuleiro com formato de grade para os blocos */
+.grid-cenario {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    background-color: #FFFFFF;
+    padding: 15px;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Blocos grandes que centralizam as figuras (emojis) */
+.bloco {
+    aspect-ratio: 1 / 1;
+    background-color: var(--cor-bloco);
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem; /* Tamanho gigante para a criança enxergar a figura perfeitamente */
+    user-select: none; /* Impede que a criança selecione o texto do emoji por acidente */
+    transition: transform 0.1s ease, filter 0.2s;
+}
+
+/* Feedback visual de clique */
+.bloco:active {
+    transform: scale(0.92);
+}
+
+.btn-principal {
+    font-family: inherit;
+    font-size: 1.4rem;
+    padding: 15px 32px;
+    background-color: #2E7D32;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 5px 0 #1B5E20;
+}
+
+.btn-principal:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #1B5E20;
+}
+
+.ranking-container {
+    margin-top: 25px;
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+    color: #2E7D32;
+}
+
+tr:nth-child(even) {
+    background-color: #E8F5E9;
+}
