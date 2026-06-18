@@ -67,6 +67,7 @@ Criação do multiplicador de pontos por clique direto controlado pelo estado da
 ## 🧐 Bônus Aplicados
 
 * **Mecânica Original Extra:** Mecânica de bônus por acerto direto (Atenção Máxima).
+* **Efeitos Sonoros Nativos:** Geração e síntese de áudio em tempo real via código com a Web Audio API
 * **Ranking Local:** Salvamento e exibição dinâmica em tabela com persistência via `localStorage`.
 * **Responsividade:** Uso de caixas proporcionais com flexibilidade de tamanho (`font-size: 3rem` e `aspect-ratio: 1/1`) perfeitas para qualquer tela de celular touch-screen.
 
