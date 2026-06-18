@@ -4,9 +4,8 @@ let tempoRestante = 30;
 let jogoAtivo = false;
 let intervaloTempo;
 let erroCometidoNaRodada = false;
+let audioCtx = null; // Inicializado no primeiro clique para respeitar as regras dos navegadores
 
-// Banco de figuras divertidas organizadas em duplas (Repetido vs Intruso)
-// Escolhi figuras bem diferentes para que uma criança de 6 anos consiga diferenciar sem se frustrar
 const paresDeFiguras = [
     { normal: "🐵", diferente: "🐱" },
     { normal: "🦁", diferente: "🐷" },
@@ -18,6 +17,74 @@ const paresDeFiguras = [
     { normal: "🍎", diferente: "🍌" }
 ];
 
+// --- Motor de Áudio Nativo (Web Audio API) ---
+function inicializarAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function tocarSomAcerto() {
+    inicializarAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    // Som alegre que sobe de frequência rapidamente
+    osc.frequency.setValueAtTime(440, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+    
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.15);
+}
+
+function tocarSomErro() {
+    inicializarAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'triangle';
+    // Som grave de aviso sutil, sem assustar a criança
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime); 
+    osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+    
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function tocarSomVitoria() {
+    inicializarAudio();
+    // Pequena fanfarra de 3 notas sequenciais alegres
+    const notas = [523.25, 659.25, 783.99]; // Notas C5, E5, G5
+    notas.forEach((freq, i) => {
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }, i * 150);
+    });
+}
+
+// --- Construção da Interface via DOM ---
 function construirInterface() {
     const app = document.getElementById('app');
     if (!app) return;
@@ -26,7 +93,7 @@ function construirInterface() {
     container.classList.add('game-container');
 
     const titulo = document.createElement('h1');
-    titulo.textContent = 'Ache a Figura Diferente! 🦊';
+    titulo.textContent = 'Ache o Diferente! 🦊';
     titulo.style.color = '#2E7D32';
 
     const painel = document.createElement('div');
@@ -49,12 +116,10 @@ function construirInterface() {
     btnJogar.textContent = 'Começar a Brincadeira! 🎮';
     btnJogar.addEventListener('click', iniciarPartida);
 
-    // Grid Inicial montado via DOM puro
     const grid = document.createElement('div');
     grid.id = 'grid-jogo';
     grid.classList.add('grid-cenario');
     
-    // Cria 9 blocos com uma interrogação lúdica antes do jogo começar
     for (let i = 0; i < 9; i++) {
         const bloco = document.createElement('div');
         bloco.classList.add('bloco');
@@ -78,6 +143,7 @@ function construirInterface() {
 
 function iniciarPartida() {
     if (jogoAtivo) return;
+    inicializarAudio(); // Ativa o contexto de áudio no clique do botão
 
     pontuacao = 0;
     tempoRestante = 30;
@@ -95,12 +161,9 @@ function gerarNovaRodada() {
     
     erroCometidoNaRodada = false; 
     const grid = document.getElementById('grid-jogo');
-    grid.innerHTML = ''; // Limpeza limpa do tabuleiro anterior
+    grid.innerHTML = ''; 
 
-    // Sorteia um par de figuras do nosso banco de dados
     const parAtual = paresDeFiguras[Math.floor(Math.random() * paresDeFiguras.length)];
-    
-    // Sorteia qual das 9 posições vai receber a figura intrusa
     const indiceDiferente = Math.floor(Math.random() * 9);
 
     for (let i = 0; i < 9; i++) {
@@ -108,11 +171,9 @@ function gerarNovaRodada() {
         bloco.classList.add('bloco');
         
         if (i === indiceDiferente) {
-            // Injeta a figura diferente
             bloco.textContent = parAtual.diferente;
             bloco.dataset.tipo = 'diferente';
         } else {
-            // Injeta as figuras repetidas normais
             bloco.textContent = parAtual.normal;
             bloco.dataset.tipo = 'normal';
         }
@@ -128,7 +189,8 @@ function processarEscolha(evento) {
     const blocoClicado = evento.target;
 
     if (blocoClicado.dataset.tipo === 'diferente') {
-        // Se achou a figura correta sem errar nenhuma outra antes, ganha bônus de atenção (+15)
+        tocarSomAcerto(); // som de acerto disparado instantaneamente
+        
         if (!erroCometidoNaRodada) {
             pontuacao += 15; 
         } else {
@@ -138,9 +200,11 @@ function processarEscolha(evento) {
         atualizarPlacarInterface();
         gerarNovaRodada(); 
     } else {
-        // Clicou na figura repetida (errou)
+        // Evita disparar o som caso a criança clique em um bloco que já foi ocultado
+        if (blocoClicado.style.filter.includes('opacity')) return;
+        
+        tocarSomErro(); // som de erro/aviso sutil
         erroCometidoNaRodada = true;
-        // O bloco com a figura errada fica quase invisível para ajudar a criança a focar nas outras opções
         blocoClicado.style.filter = 'opacity(0.15)';
     }
 }
@@ -161,10 +225,11 @@ function contarTempo() {
 function encerrarPartida() {
     jogoAtivo = false;
     clearInterval(intervaloTempo);
+    tocarSomVitoria(); // Dispara a fanfarra musical de comemoração
 
     const blocos = document.querySelectorAll('.bloco');
     blocos.forEach(b => {
-        b.textContent = "💤"; // Sinaliza o fim do jogo de forma fofa
+        b.textContent = "💤"; 
         b.style.filter = 'none';
     });
 
